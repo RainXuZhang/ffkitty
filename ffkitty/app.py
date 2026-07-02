@@ -43,6 +43,41 @@ from ffkitty.ffmpeg_ops import (
 from ffkitty.kitty_image import extract_frame, is_kitty
 
 
+# Nerd Font icons for intuitive UI
+ICON_README = "\U000f02d2"
+ICON_OPEN = "\U000f0024"
+ICON_TRIM = "\U000f02c8"
+ICON_EDIT = "\U000f0300"
+ICON_MERGE = "\U000f0211"
+ICON_TEXT = "\U000f02a9"
+ICON_RUN = "\U000f0409"
+ICON_PREVIEW = "\U000f03d5"
+ICON_START = "\U000f0307"
+ICON_END = "\U000f022e"
+ICON_FILE = "\U000f0055"
+ICON_OUTPUT = "\U000f0214"
+ICON_TIME = "\U000f0133"
+ICON_ARGS = "\U000f0292"
+ICON_OVERWRITE = "\U000f0218"
+ICON_POSITION = "\U000f0215"
+ICON_SIZE = "\U000f0216"
+ICON_COLOR = "\U000f0217"
+ICON_CROP = "\U000f0218"
+ICON_SCALE = "\U000f0219"
+ICON_ROTATE = "\U000f021a"
+ICON_FLIP = "\U000f021b"
+ICON_SPEED = "\U000f021c"
+ICON_VOLUME = "\U000f021d"
+ICON_MUTE = "\U000f021e"
+ICON_FADE = "\U000f021f"
+ICON_DENOISE = "\U000f0220"
+ICON_SHARPEN = "\U000f0221"
+ICON_SUBTITLES = "\U000f0222"
+ICON_TEXTBOX = "\U000f0223"
+ICON_ADD = "\U000f0224"
+ICON_QUICK = "\U000f0225"
+
+
 class ReadmeScreen(ModalScreen[None]):
     BINDINGS = [
         Binding("escape", "dismiss", "Close"),
@@ -185,7 +220,7 @@ class PreviewPanel(Vertical):
     def _show_frame(self, png: bytes) -> None:
         self.query_one("#preview-image", AutoImage).image = io.BytesIO(png)
         self.query_one("#preview-status", Static).update(
-            f"[dim]Frame at {self._timestamp} — [ sets start, ] sets end[/dim]"
+            f"[dim]Frame at {self._timestamp} — [ {ICON_START} sets start, ] {ICON_END} sets end[/dim]"
         )
 
 
@@ -316,39 +351,39 @@ class ToolPanel(Button):
 
 def describe_tool_context(tab_id: str, input_path: Path | None = None, action: str | None = None) -> str:
     if action == "open":
-        return "Open • Choose a file to inspect and prepare"
+        return f"{ICON_OPEN} Open • Choose a file to inspect and prepare"
     if action == "preview":
-        return "Preview • Refresh the current frame at the selected timestamp"
+        return f"{ICON_PREVIEW} Preview • Refresh the current frame at the selected timestamp"
     if action == "start":
-        return "Start • Set the trim start from the preview position"
+        return f"{ICON_START} Start • Set the trim start from the preview position"
     if action == "end":
-        return "End • Set the trim end from the preview position"
+        return f"{ICON_END} End • Set the trim end from the preview position"
     if action == "run":
-        return "Run • Export using the current preset, trim, and edits"
+        return f"{ICON_RUN} Run • Export using the current preset, trim, and edits"
     if action == "trim":
-        return "Trim • Set a clip range and export it"
+        return f"{ICON_TRIM} Trim • Set a clip range and export it"
     if action == "text":
-        return "Text • Add captions and titles to your export"
+        return f"{ICON_TEXT} Text • Add captions and titles to your export"
     if action == "readme":
-        return "Readme • View the application documentation"
+        return f"{ICON_README} Readme • View the application documentation"
     if tab_id == "edit-tab":
-        return "Edit • Transform • Text overlay"
+        return f"{ICON_EDIT} Edit • Transform • Text overlay"
     if tab_id == "concat-tab":
-        return "Concat • Merge clips • Set output"
+        return f"{ICON_MERGE} Concat • Merge clips • Set output"
     if input_path:
-        return f"Encode • {input_path.name} • preset / trim / output"
-    return "Encode • Open a file to begin"
+        return f"{ICON_FILE} Encode • {input_path.name} • preset / trim / output"
+    return f"{ICON_FILE} Encode • Open a file to begin"
 
 
 def get_quick_actions() -> list[tuple[str, str]]:
     return [
-        ("\U000f02d2 Readme", "readme"),
-        ("Open", "open"),
-        ("Trim", "encode"),
-        ("Edit", "edit"),
-        ("Merge", "concat"),
-        ("Text", "text"),
-        ("Run", "run"),
+        (f"{ICON_README} Readme", "readme"),
+        (f"{ICON_OPEN} Open", "open"),
+        (f"{ICON_TRIM} Trim", "encode"),
+        (f"{ICON_EDIT} Edit", "edit"),
+        (f"{ICON_MERGE} Merge", "concat"),
+        (f"{ICON_TEXT} Text", "text"),
+        (f"{ICON_RUN} Run", "run"),
     ]
 
 
@@ -470,9 +505,20 @@ class FfkittyApp(App[None]):
         margin-bottom: 1;
     }
 
-    #preset-list {
-        height: 9;
+    #preset-select {
         margin-bottom: 1;
+    }
+
+    #text-buttons {
+        height: auto;
+        margin-bottom: 1;
+    }
+
+    #text-buttons Button {
+        min-width: 0;
+        height: 3;
+        margin-right: 1;
+        padding: 0 1;
     }
 
     #concat-files {
@@ -566,7 +612,7 @@ class FfkittyApp(App[None]):
         self.output_path: Path | None = None
         self.selected_preset = PRESET_NAMES[0]
         self.active_tab = "encode-tab"
-
+        
     def compose(self) -> ComposeResult:
         yield Header()
         with Vertical(id="main"):
@@ -599,100 +645,101 @@ class FfkittyApp(App[None]):
                     with VerticalScroll(id="bottom-panel"):
                         with TabbedContent(id="tabs"):
                             with TabPane("Encode", id="encode-tab"):
-                                yield Label("Output preset")
-                                yield ListView(*[ListItem(Label(name)) for name in PRESET_NAMES], id="preset-list")
+                                yield Label(f"{ICON_FILE} Output preset")
+                                yield Select(
+                                    [(name, name) for name in PRESET_NAMES],
+                                    value=PRESET_NAMES[0],
+                                    id="preset-select",
+                                )
                                 with Vertical(id="controls"):
-                                    yield Label("Input file")
+                                    yield Label(f"{ICON_FILE} Input file")
                                     yield Input(placeholder="Path to input media", id="input-path")
-                                    yield Label("Output file")
+                                    yield Label(f"{ICON_OUTPUT} Output file")
                                     yield Input(placeholder="Output path", id="output-path")
-                                    yield Label("Start time (HH:MM:SS)")
+                                    yield Label(f"{ICON_TIME} Start time (HH:MM:SS)")
                                     yield Input(placeholder="00:00:00", id="start-time")
-                                    yield Label("End time (HH:MM:SS)")
+                                    yield Label(f"{ICON_TIME} End time (HH:MM:SS)")
                                     yield Input(placeholder="00:00:00", id="end-time")
-                                    yield Label("Preview timestamp")
+                                    yield Label(f"{ICON_PREVIEW} Preview timestamp")
                                     yield Input(value="00:00:01", id="preview-time")
-                                    yield Label("Extra ffmpeg args")
+                                    yield Label(f"{ICON_ARGS} Extra ffmpeg args")
                                     yield Input(placeholder="-map 0 -sn", id="extra-args")
                                     yield Select(
-                                        [(label, value) for label, value in [("Fail if exists", "no"), ("Overwrite", "yes")]],
+                                        [(f"{ICON_OVERWRITE} Fail if exists", "no"), (f"{ICON_OVERWRITE} Overwrite", "yes")],
                                         value="no",
                                         id="overwrite",
                                     )
                             with TabPane("Edit", id="edit-tab"):
-                                yield Static("[bold]Text overlay[/bold]")
+                                yield Static(f"[bold]{ICON_TEXT} Text overlay[/bold]")
                                 with Horizontal(classes="compact-row"):
-                                    yield Label("Text")
+                                    yield Label(f"{ICON_TEXT} Text")
                                     yield Input(placeholder="Hello", id="text-overlay")
+                                with Horizontal(id="text-buttons"):
+                                    yield Button("Hello", id="btn-text-hello", variant="primary")
+                                    yield Button("Title", id="btn-text-title")
+                                    yield Button("Timestamp", id="btn-text-timestamp")
+                                    yield Button("Clear", id="btn-text-clear")
                                 with Horizontal(classes="compact-row"):
-                                    yield Label("Pos")
+                                    yield Label(f"{ICON_POSITION} Pos")
                                     yield Input(placeholder="10", id="text-x")
                                     yield Label("/")
                                     yield Input(placeholder="10", id="text-y")
                                 with Horizontal(classes="compact-row"):
-                                    yield Label("Size")
+                                    yield Label(f"{ICON_SIZE} Size")
                                     yield Input(value="24", id="text-size")
-                                    yield Label("Color")
+                                    yield Label(f"{ICON_COLOR} Color")
                                     yield Input(value="white", id="text-color")
-                                yield Checkbox("Text box", id="text-box")
-                                yield Static("[bold]Transform[/bold]")
+                                yield Checkbox(f"{ICON_TEXTBOX} Text box", id="text-box")
+                                yield Static(f"[bold]{ICON_CROP} Transform[/bold]")
                                 with Horizontal(classes="field-row"):
-                                    yield Label("Crop W")
+                                    yield Label(f"{ICON_CROP} Crop W")
                                     yield Input(placeholder="0", id="crop-w")
                                     yield Label("H")
                                     yield Input(placeholder="0", id="crop-h")
                                 with Horizontal(classes="field-row"):
-                                    yield Label("Crop X")
+                                    yield Label(f"{ICON_CROP} Crop X")
                                     yield Input(placeholder="0", id="crop-x")
                                     yield Label("Y")
                                     yield Input(placeholder="0", id="crop-y")
                                 with Horizontal(classes="field-row"):
-                                    yield Label("Scale W")
+                                    yield Label(f"{ICON_SCALE} Scale W")
                                     yield Input(placeholder="0 = off", id="scale-w")
                                     yield Label("H")
                                     yield Input(placeholder="0 = auto", id="scale-h")
                                 yield Select(
-                                    [(label, val) for label, val in [
-                                        ("No rotation", "0"),
-                                        ("Rotate 90° CW", "90"),
-                                        ("Rotate 180°", "180"),
-                                        ("Rotate 90° CCW", "270"),
-                                    ]],
+                                    [(f"{ICON_ROTATE} No rotation", "0"), (f"{ICON_ROTATE} Rotate 90° CW", "90"), (f"{ICON_ROTATE} Rotate 180°", "180"), (f"{ICON_ROTATE} Rotate 90° CCW", "270")],
                                     value="0",
                                     id="rotate",
                                 )
-                                yield Checkbox("Flip horizontal", id="hflip")
-                                yield Checkbox("Flip vertical", id="vflip")
-                                yield Static("[bold]Speed & audio[/bold]")
-                                yield Label("Speed (1.0 = normal, 2.0 = 2×)")
+                                yield Checkbox(f"{ICON_FLIP} Flip horizontal", id="hflip")
+                                yield Checkbox(f"{ICON_FLIP} Flip vertical", id="vflip")
+                                yield Static(f"[bold]{ICON_SPEED} Speed & audio[/bold]")
+                                yield Label(f"{ICON_SPEED} Speed (1.0 = normal, 2.0 = 2×)")
                                 yield Input(value="1.0", id="speed")
-                                yield Label("Volume (1.0 = normal, 0.5 = half)")
+                                yield Label(f"{ICON_VOLUME} Volume (1.0 = normal, 0.5 = half)")
                                 yield Input(value="1.0", id="volume")
-                                yield Checkbox("Mute audio", id="mute")
-                                yield Static("[bold]Effects[/bold]")
-                                yield Label("Fade in (seconds)")
+                                yield Checkbox(f"{ICON_MUTE} Mute audio", id="mute")
+                                yield Static(f"[bold]{ICON_FADE} Effects[/bold]")
+                                yield Label(f"{ICON_FADE} Fade in (seconds)")
                                 yield Input(value="0", id="fade-in")
-                                yield Label("Fade out (seconds)")
+                                yield Label(f"{ICON_FADE} Fade out (seconds)")
                                 yield Input(value="0", id="fade-out")
-                                yield Checkbox("Denoise", id="denoise")
-                                yield Checkbox("Sharpen", id="sharpen")
-                                yield Label("Subtitles file (.srt / .ass)")
+                                yield Checkbox(f"{ICON_DENOISE} Denoise", id="denoise")
+                                yield Checkbox(f"{ICON_SHARPEN} Sharpen", id="sharpen")
+                                yield Label(f"{ICON_SUBTITLES} Subtitles file (.srt / .ass)")
                                 yield Input(placeholder="/path/to/subs.srt", id="subtitles")
                             with TabPane("Concat", id="concat-tab"):
                                 yield Static("One file path per line, in playback order.")
                                 yield TextArea(id="concat-files")
-                                yield Label("Concat output file")
+                                yield Label(f"{ICON_OUTPUT} Concat output file")
                                 yield Input(placeholder="merged_out.mp4", id="concat-output")
                                 yield Select(
-                                    [(label, val) for label, val in [
-                                        ("Stream copy (fast)", "copy"),
-                                        ("Re-encode H.264 (compatible)", "reencode"),
-                                    ]],
+                                    [(f"{ICON_ADD} Stream copy (fast)", "copy"), (f"{ICON_ADD} Re-encode H.264 (compatible)", "reencode")],
                                     value="copy",
                                     id="concat-mode",
                                 )
                                 yield Select(
-                                    [(label, value) for label, value in [("Fail if exists", "no"), ("Overwrite", "yes")]],
+                                    [(f"{ICON_OVERWRITE} Fail if exists", "no"), (f"{ICON_OVERWRITE} Overwrite", "yes")],
                                     value="no",
                                     id="concat-overwrite",
                                 )
@@ -703,8 +750,6 @@ class FfkittyApp(App[None]):
 
     def on_mount(self) -> None:
         self._install_theme()
-        preset_list = self.query_one("#preset-list", ListView)
-        preset_list.index = 0
         self._update_command_preview()
         self._update_tool_panel()
         if is_kitty():
@@ -873,14 +918,15 @@ class FfkittyApp(App[None]):
             self.active_tab = event.pane.id
         self._update_command_preview()
 
-    @on(ListView.Selected, "#preset-list")
-    def on_preset_selected(self, event: ListView.Selected) -> None:
-        if event.index is not None:
-            self.selected_preset = PRESET_NAMES[event.index]
+    @on(Select.Changed, "#preset-select")
+    def on_preset_selected(self, event: Select.Changed) -> None:
+        if event.value:
+            self.selected_preset = str(event.value)
         if self.input_path:
             self.output_path = default_output_path(self.input_path, self.selected_preset)
             self.query_one("#output-path", Input).value = str(self.output_path)
         self._update_command_preview()
+
 
     @on(Input.Changed)
     def on_any_input_changed(self) -> None:
@@ -897,9 +943,6 @@ class FfkittyApp(App[None]):
     def on_any_select_changed(self) -> None:
         self._update_command_preview()
 
-    @on(Checkbox.Changed)
-    def on_any_checkbox_changed(self) -> None:
-        self._update_command_preview()
 
     @on(Button.Pressed, "#btn-open")
     def on_open_pressed(self) -> None:
@@ -931,6 +974,29 @@ class FfkittyApp(App[None]):
     def on_readme_pressed(self) -> None:
         self._set_tool_context("readme")
         self.action_show_readme()
+
+    @on(Button.Pressed, "#btn-text-hello")
+    def on_text_hello(self) -> None:
+        self.query_one("#text-overlay", Input).value = "Hello"
+        self._update_command_preview()
+
+    @on(Button.Pressed, "#btn-text-title")
+    def on_text_title(self) -> None:
+        self.query_one("#text-overlay", Input).value = "Title"
+        self.query_one("#text-size", Input).value = "48"
+        self.query_one("#text-x", Input).value = "(w-text_w)/2"
+        self.query_one("#text-y", Input).value = "10"
+        self._update_command_preview()
+
+    @on(Button.Pressed, "#btn-text-timestamp")
+    def on_text_timestamp(self) -> None:
+        self.query_one("#text-overlay", Input).value = "timestamp"
+        self._update_command_preview()
+
+    @on(Button.Pressed, "#btn-text-clear")
+    def on_text_clear(self) -> None:
+        self.query_one("#text-overlay", Input).value = ""
+        self._update_command_preview()
 
     def _activate_tab(self, pane_id: str, action: str | None = None) -> None:
         self.active_tab = pane_id

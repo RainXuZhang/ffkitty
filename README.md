@@ -52,6 +52,8 @@ ffkitty
 
 ### Quick Actions (Sidebar Buttons)
 
+> **Note:** Requires Nerd Font for icons. Install from [nerdfix.com](https://www.nerdfix.com).
+
 | Button | What it does |
 | :--- | :--- |
 | **Open** | Pick a video file to work with |
@@ -76,7 +78,7 @@ ffkitty
 
 #### Encode Tab - Convert & Trim Videos
 
-1. **Select a format:** Use arrow keys to highlight a preset (MP4, WebM, GIF, etc.) in the list, then press `Enter`
+1. **Select a format:** Use the dropdown to select a preset (MP4, WebM, GIF, etc.)
 2. **Set input:** Type or paste your input file path in the "Input file" field, or press `o` to browse
 3. **Set output:** Type your desired output path in the "Output file" field (e.g., `output.mp4`)
 4. **Trim a clip:** 
@@ -90,7 +92,7 @@ ffkitty
 #### Edit Tab - Transform & Add Text
 
 1. **Text overlay:**
-   - Type your text in the "Text" field (e.g., "Hello World")
+   - Use the quick buttons to insert common text: "Hello", "Title", "Timestamp", or "Clear"
    - Set position: X=10, Y=10 (top-left corner)
    - Set size: 24 (font size)
    - Set color: "white" or "yellow"
@@ -101,7 +103,7 @@ ffkitty
 3. **Scale:**
    - Set Scale W: new width (0 = keep original)
    - Set Scale H: new height (0 = auto-calculate)
-4. **Rotate:** Use arrow keys to select rotation: "No rotation", "Rotate 90° CW", "Rotate 180°", "Rotate 90° CCW"
+4. **Rotate:** Use the dropdown to select rotation: "No rotation", "Rotate 90° CW", "Rotate 180°", "Rotate 90° CCW"
 5. **Flip:** Check "Flip horizontal" or "Flip vertical" to mirror the video
 6. **Speed/Volume:**
    - Speed: 1.0 = normal, 2.0 = 2x faster, 0.5 = half speed
@@ -145,4 +147,3 @@ ffkitty/
 │   ├── edit_ops.py     # Filters (Crop, Scale, Concat)
 │   └── kitty_image.py  # Kitty Graphics Protocol Handling
 └── pyproject.toml
-```
