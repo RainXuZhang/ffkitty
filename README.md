@@ -74,9 +74,58 @@ ffkitty
 
 ### Three Main Tabs
 
-* **Encode:** Convert videos to different formats (MP4, WebM, GIF, Audio) and trim clips
-* **Edit:** Add text, crop, rotate, flip, change speed, adjust volume, add fades
-* **Concat:** Merge multiple videos together
+#### Encode Tab - Convert & Trim Videos
+
+1. **Select a format:** Use arrow keys to highlight a preset (MP4, WebM, GIF, etc.) in the list, then press `Enter`
+2. **Set input:** Type or paste your input file path in the "Input file" field, or press `o` to browse
+3. **Set output:** Type your desired output path in the "Output file" field (e.g., `output.mp4`)
+4. **Trim a clip:** 
+   - Type a timestamp in "Preview timestamp" (format: `HH:MM:SS` like `00:01:23`)
+   - Press `r` to refresh the preview at that time
+   - Press `[` to set the start time
+   - Change the timestamp and press `]` to set the end time
+5. **Add extra args:** Type optional ffmpeg arguments in "Extra ffmpeg args" (e.g., `-map 0 -sn`)
+6. **Run:** Press `Enter` to export
+
+#### Edit Tab - Transform & Add Text
+
+1. **Text overlay:**
+   - Type your text in the "Text" field (e.g., "Hello World")
+   - Set position: X=10, Y=10 (top-left corner)
+   - Set size: 24 (font size)
+   - Set color: "white" or "yellow"
+   - Check "Text box" to add a background box behind text
+2. **Crop:**
+   - Set crop W/H: width and height of the cropped area
+   - Set crop X/Y: position of the crop (0,0 = top-left)
+3. **Scale:**
+   - Set Scale W: new width (0 = keep original)
+   - Set Scale H: new height (0 = auto-calculate)
+4. **Rotate:** Use arrow keys to select rotation: "No rotation", "Rotate 90° CW", "Rotate 180°", "Rotate 90° CCW"
+5. **Flip:** Check "Flip horizontal" or "Flip vertical" to mirror the video
+6. **Speed/Volume:**
+   - Speed: 1.0 = normal, 2.0 = 2x faster, 0.5 = half speed
+   - Volume: 1.0 = normal, 0.5 = half volume, check "Mute audio" to silence
+7. **Effects:**
+   - Fade in: seconds to fade in (e.g., 1.0)
+   - Fade out: seconds to fade out (e.g., 2.0)
+   - Check "Denoise" to reduce noise
+   - Check "Sharpen" to enhance sharpness
+8. **Subtitles:** Type path to .srt or .ass file in "Subtitles file" field
+
+#### Concat Tab - Merge Videos
+
+1. **List files:** Type or paste one video file path per line in the large text area:
+   ```
+   /path/to/video1.mp4
+   /path/to/video2.mp4
+   /path/to/video3.mp4
+   ```
+2. **Set output:** Type the merged output path in "Concat output file" (e.g., `merged.mp4`)
+3. **Choose mode:** 
+   - Select "Stream copy (fast)" for quick merging (all videos must be same format)
+   - Select "Re-encode H.264 (compatible)" for different formats (slower)
+4. **Run:** Press `Enter` to merge
 
 ---
 
