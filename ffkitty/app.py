@@ -43,6 +43,40 @@ from ffkitty.ffmpeg_ops import (
 from ffkitty.kitty_image import extract_frame, is_kitty
 
 
+class ReadmeScreen(ModalScreen[None]):
+    DEFAULT_CSS = """
+    ReadmeScreen {
+        background: $surface;
+        padding: 2 4;
+    }
+
+    ReadmeScreen #readme-content {
+        width: 100%;
+        height: 1fr;
+        border: solid $primary;
+        padding: 2;
+        background: $panel;
+        color: $text;
+        overflow-y: auto;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Static(id="readme-content")
+
+    def on_mount(self) -> None:
+        readme_path = Path(__file__).parent.parent / "README.md"
+        if readme_path.exists():
+            content = readme_path.read_text()
+            # Remove the first line (title) and format for display
+            lines = content.splitlines()
+            if lines and lines[0].startswith("# "):
+                lines = lines[1:]
+            self.query_one("#readme-content", Static).update("\n".join(lines))
+        else:
+            self.query_one("#readme-content", Static).update("README.md not found")
+
+
 class FilePicker(ModalScreen[Path | None]):
     BINDINGS = [
         Binding("escape", "cancel", "Cancel"),
@@ -269,7 +303,7 @@ class ToolPanel(Button):
             self.app._activate_tab("edit-tab")
         elif self._action == "concat":
             self.app._activate_tab("concat-tab")
-
+        elif self._action ==
 
 def describe_tool_context(tab_id: str, input_path: Path | None = None, action: str | None = None) -> str:
     if action == "open":
@@ -297,6 +331,7 @@ def describe_tool_context(tab_id: str, input_path: Path | None = None, action: s
 
 def get_quick_actions() -> list[tuple[str, str]]:
     return [
+        ("\U000f02d2 Readme", "readme"),
         ("Open", "open"),
         ("Trim", "encode"),
         ("Edit", "edit"),
