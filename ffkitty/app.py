@@ -91,14 +91,14 @@ class PreviewPanel(Vertical):
         max-height: 34;
         min-height: 20;
         content-align: center middle;
-        border: round #94a3b8;
+        border: solid $primary;
         padding: 1;
-        background: rgba(255, 255, 255, 0.98);
+        background: $surface;
     }
 
     PreviewPanel #preview-status {
         height: auto;
-        color: #475569;
+        color: $text;
         padding-top: 1;
         text-align: center;
     }
@@ -152,10 +152,10 @@ class InfoPanel(Static):
     DEFAULT_CSS = """
     InfoPanel {
         height: auto;
-        border: round #94a3b8;
+        border: solid $primary;
         padding: 1 1;
-        background: rgba(255, 255, 255, 0.98);
-        color: #0f172a;
+        background: $panel;
+        color: $text;
     }
     """
 
@@ -189,11 +189,11 @@ class CommandPreview(Static):
         height: auto;
         max-height: 7;
         min-height: 3;
-        border: round #94a3b8;
+        border: solid $primary;
         padding: 1 1;
         overflow-y: auto;
-        background: rgba(255, 255, 255, 0.98);
-        color: #0f172a;
+        background: $panel;
+        color: $text;
     }
     """
 
@@ -204,12 +204,11 @@ class CommandPreview(Static):
 class TimelinePanel(Static):
     DEFAULT_CSS = """
     TimelinePanel {
-        height: auto;
-        min-height: 3;
-        border: round #94a3b8;
+        height: 3;
+        border: solid $primary;
         padding: 0 1;
-        background: transparent;
-        color: #0f172a;
+        background: $panel;
+        color: $text;
     }
     """
 
@@ -220,24 +219,22 @@ class TimelinePanel(Static):
 class ToolPanel(Button):
     DEFAULT_CSS = """
     ToolPanel {
-        height: auto;
-        min-height: 3;
+        height: 3;
         padding: 0 1;
         margin-bottom: 1;
-        background: rgba(255, 255, 255, 0.96);
-        color: #374151;
-        border: round #d1d5db;
+        background: $panel;
+        color: $text;
+        border: solid $primary;
         width: 1fr;
         text-align: left;
     }
 
     ToolPanel:hover {
-        background: #f9fafb;
-        border: round #cbd5e1;
+        background: $boost;
     }
 
     ToolPanel:focus {
-        border: heavy #60a5fa;
+        background: $secondary;
     }
     """
 
@@ -315,39 +312,30 @@ class FfkittyApp(App[None]):
 
     CSS = """
     App {
-        background: transparent;
-        color: #1f2937;
-    }
-
-    * {
-        transition: none;
+        background: $surface;
+        color: $text;
     }
 
     Screen {
         layout: vertical;
-        background: transparent;
-        color: #1f2937;
+        background: $surface;
     }
 
     #main {
         height: 1fr;
-        padding: 1 2 1 2;
-        background: rgba(248, 250, 252, 0.97);
+        padding: 1 2;
     }
 
     #workspace {
         height: 1fr;
-        min-height: 0;
     }
 
     #sidebar {
-        width: 24;
-        min-width: 20;
+        width: 20;
         padding-right: 1;
     }
 
     #sidebar-title {
-        color: #6366f1;
         text-style: bold;
         margin-bottom: 1;
     }
@@ -355,32 +343,29 @@ class FfkittyApp(App[None]):
     #sidebar Button {
         width: 1fr;
         min-width: 0;
+        height: 3;
         margin-bottom: 1;
         padding: 0 1;
-        background: #f9fafb;
-        color: #111827;
+        background: $panel;
+        color: $text;
         border: none;
         text-align: left;
     }
 
     #sidebar Button:hover {
-        background: #e5e7eb;
-        color: #0f172a;
+        background: $primary;
     }
 
     #sidebar Button.-primary {
-        background: #eff6ff;
-        color: #1d4ed8;
+        background: $boost;
     }
 
     #sidebar Button.-success {
-        background: #f0fdf4;
-        color: #166534;
+        background: $success;
     }
 
     #content {
         width: 1fr;
-        min-width: 0;
     }
 
     #tool-panel {
@@ -389,47 +374,46 @@ class FfkittyApp(App[None]):
 
     #top-bar {
         height: auto;
-        min-height: 24;
-        align: center middle;
         margin-bottom: 1;
     }
 
     #top-info {
-        width: 1.1fr;
-        min-width: 38;
+        width: 1fr;
+        min-width: 30;
         margin-right: 1;
     }
 
     #preview {
-        width: 2.2fr;
-        min-width: 48;
+        width: 1fr;
+        min-width: 30;
     }
 
     #top-info, #preview, #timeline, #bottom-panel {
-        background: rgba(255, 255, 255, 0.98);
-        border: round #94a3b8;
+        background: $panel;
+        border: solid $primary;
     }
 
     #timeline {
-        height: auto;
-        min-height: 3;
+        height: 3;
         margin-bottom: 1;
     }
 
     #bottom-panel {
         height: 1fr;
-        min-height: 32;
-        padding: 0 1 1 1;
+        padding: 1;
     }
 
     #tabs {
         height: auto;
-        min-height: 24;
     }
 
     #tabs TabPane {
-        padding: 1 1 0 1;
-        background: rgba(248, 250, 252, 0.97);
+        padding: 1;
+        background: $surface;
+    }
+
+    #controls {
+        margin-top: 1;
     }
 
     #controls Input, #controls Select {
@@ -442,14 +426,7 @@ class FfkittyApp(App[None]):
 
     #preset-list {
         height: 9;
-        border: round #94a3b8;
         margin-bottom: 1;
-        background: #f8fafc;
-        color: #0f172a;
-    }
-
-    #edit-tab, #concat-tab {
-        padding: 0 1;
     }
 
     #concat-files {
@@ -457,65 +434,49 @@ class FfkittyApp(App[None]):
         margin-bottom: 1;
     }
 
-    #actions {
-        height: auto;
-        align: left middle;
-        padding: 0 1;
-        margin-top: 1;
-    }
-
-    #actions Button {
-        margin-right: 1;
-    }
-
     #progress-area {
         height: auto;
-        padding: 0 1;
+        padding: 1;
     }
 
     #status {
         height: auto;
-        padding: 0 1;
+        padding: 1;
     }
 
     Input, Select, TextArea {
-        background: #ffffff;
-        color: #0f172a;
-        border: solid #94a3b8;
+        background: $surface;
+        color: $text;
+        border: solid $primary;
         padding: 0 1;
     }
 
     Button {
-        background: #f8fafc;
-        color: #0f172a;
+        background: $panel;
+        color: $text;
         border: none;
         padding: 0 1;
-        min-width: 8;
     }
 
     Button.-primary {
-        background: #eff6ff;
-        color: #1d4ed8;
+        background: $boost;
     }
 
     Button.-success {
-        background: #f0fdf4;
-        color: #166534;
+        background: $success;
     }
 
     Button:hover {
-        background: #e2e8f0;
-        color: #020617;
+        background: $primary;
     }
 
     Button:focus {
-        background: #bfdbfe;
-        color: #0f172a;
+        background: $secondary;
     }
 
     ProgressBar {
-        color: #2563eb;
-        background: #e2e8f0;
+        color: $success;
+        background: $panel;
     }
 
     .field-row {
@@ -533,7 +494,7 @@ class FfkittyApp(App[None]):
     }
 
     .compact-row Label {
-        min-width: 10;
+        min-width: 8;
         margin-right: 1;
     }
 
@@ -554,6 +515,7 @@ class FfkittyApp(App[None]):
     def __init__(self) -> None:
         super().__init__()
         self.theme = "textual-light"
+        self.dark = False
         self.input_path: Path | None = None
         self.output_path: Path | None = None
         self.selected_preset = PRESET_NAMES[0]
@@ -567,19 +529,19 @@ class FfkittyApp(App[None]):
                     yield Static("[bold]Quick actions[/bold]", id="sidebar-title")
                     for label, button_id in get_quick_actions():
                         if button_id == "open":
-                            yield Button(f" {label}", id="btn-open", variant="primary")
+                            yield Button(label, id="btn-open", variant="primary")
                         elif button_id == "run":
-                            yield Button(f" {label}", id="btn-run", variant="success")
+                            yield Button(label, id="btn-run", variant="success")
                         elif button_id == "encode":
-                            yield Button(f" {label}", id="btn-trim")
+                            yield Button(label, id="btn-trim")
                         elif button_id == "concat":
-                            yield Button(f" {label}", id="btn-concat")
+                            yield Button(label, id="btn-concat")
                         elif button_id == "text":
-                            yield Button(f" {label}", id="btn-text")
+                            yield Button(label, id="btn-text")
                         elif button_id == "edit":
-                            yield Button(f" {label}", id="btn-edit")
+                            yield Button(label, id="btn-edit")
                         else:
-                            yield Button(f"  {label}", id=f"btn-{button_id}")
+                            yield Button(label, id=f"btn-{button_id}")
                 with Vertical(id="content"):
                     yield ToolPanel(id="tool-panel")
                     with Horizontal(id="top-bar"):
@@ -694,6 +656,7 @@ class FfkittyApp(App[None]):
         yield Footer()
 
     def on_mount(self) -> None:
+        self._install_theme()
         preset_list = self.query_one("#preset-list", ListView)
         preset_list.index = 0
         self._update_command_preview()
@@ -704,6 +667,23 @@ class FfkittyApp(App[None]):
             self.query_one("#status", Static).update(
                 "Not running in Kitty — previews disabled, encoding still works."
             )
+
+    def _install_theme(self) -> None:
+        from textual.theme import Theme
+
+        self._theme = Theme(
+            name="ffkitty-light",
+            primary="#3b82f6",
+            secondary="#6366f1",
+            accent="#8b5cf6",
+            success="#22c55e",
+            warning="#f59e0b",
+            error="#ef4444",
+            surface="#f8fafc",
+            panel="#e2e8f0",
+            boost="#dbeafe",
+        )
+        self.register_theme(self._theme)
 
     def _parse_int(self, widget_id: str) -> int:
         text = self.query_one(f"#{widget_id}", Input).value.strip()
@@ -880,28 +860,9 @@ class FfkittyApp(App[None]):
         self._set_tool_context("open")
         self.action_open_file()
 
-    @on(Button.Pressed, "#btn-preview")
-    def on_preview_pressed(self) -> None:
-        self._set_tool_context("preview")
-        self.action_refresh_preview()
-
     @on(Button.Pressed, "#btn-trim")
     def on_trim_pressed(self) -> None:
         self._activate_tab("encode-tab", action="trim")
-
-    @on(Button.Pressed, "#btn-start")
-    def on_start_pressed(self) -> None:
-        self._set_tool_context("start")
-        self.action_mark_start()
-
-    @on(Button.Pressed, "#btn-end")
-    def on_end_pressed(self) -> None:
-        self._set_tool_context("end")
-        self.action_mark_end()
-
-    @on(Button.Pressed, "#btn-encode")
-    def on_encode_pressed(self) -> None:
-        self._activate_tab("encode-tab", action="encode")
 
     @on(Button.Pressed, "#btn-edit")
     def on_edit_pressed(self) -> None:

@@ -7,83 +7,84 @@ Terminal GUI for [ffmpeg](https://ffmpeg.org), built for the [Kitty](https://sw.
 
 ---
 
-## Prerequisites & Installation
+## Quick Start (For Beginners)
 
-Ensure you have **Python 3.11+**, **ffmpeg**, and **Kitty** installed on your system.
+### 1. Install Requirements
 
-### 1. Install Dependencies
-
-* **Arch Linux:**
-
-  ```bash
-  sudo pacman -S python python-pip ffmpeg kitty ttf-hack-nerd
-  ```
-
-* **Debian/Ubuntu:**
-
-  ```bash
-  sudo apt update && sudo apt install python3 python3-pip python3-venv ffmpeg kitty
-  ```
-
-* **Fedora:**
-
-  ```bash
-  sudo dnf install python3 python3-pip ffmpeg kitty hack-fonts
-  ```
-
-* **macOS:**
-
-  ```bash
-  brew install ffmpeg kitty font-hack-nerd-font
-  ```
-
-### 2. Setup Application
+First, install the required software:
 
 ```bash
-cd /path/to/ffkitty
+# Ubuntu/Debian
+sudo apt update && sudo apt install python3-pip python3-venv ffmpeg kitty
 
-# Using the automatic launcher
-chmod +x run.sh && ./run.sh
-
-# Or manual virtualenv setup
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
+# macOS
+brew install ffmpeg kitty
 ```
 
----
+### 2. Install ffkitty
 
-## How to Use
+```bash
+# Download and enter the folder
+cd /path/to/ffkitty
 
-Launch the application from within a Kitty terminal window:
+# Install the app (one-time setup)
+./run.sh
+```
+
+### 3. Run ffkitty
+
+Open a Kitty terminal and run:
 
 ```bash
 ffkitty
 ```
 
-### Essential Shortcuts
+---
+
+## How to Use (Step by Step)
+
+### Basic Video Trimming
+
+1. **Open a video:** Press `o` and select your video file
+2. **Set start time:** Move the preview timestamp, then press `[`
+3. **Set end time:** Move to end position, then press `]`
+4. **Run:** Press `Enter` to export the trimmed clip
+
+### Quick Actions (Sidebar Buttons)
+
+| Button | What it does |
+| :--- | :--- |
+| **Open** | Pick a video file to work with |
+| **Trim** | Switch to trim/encode mode |
+| **Edit** | Add text, crop, rotate, adjust speed |
+| **Merge** | Combine multiple videos |
+| **Text** | Add captions to your video |
+| **Run** | Export your changes |
+
+### Keyboard Shortcuts
 
 | Key | Action |
 | :--- | :--- |
-| `o` | Open file picker to select a video |
-| `r` | Refresh preview thumbnail at the current timestamp |
+| `o` | Open file picker |
+| `r` | Refresh preview at current time |
 | `[` | Set clip **Start** time |
 | `]` | Set clip **End** time |
 | `Enter` | Run ffmpeg processing |
 | `q` | Quit application |
 
-### Tab Layouts
+### Three Main Tabs
 
-* **Encode:** Quick container conversion (MP4, WebM, GIF, Audio extraction) and rapid video trimming.
-* **Edit:** Fine-grained video adjustments including Crop, Scale, Rotate, Flip, Speed modification, Volume adjustment, Fades, and hardcoded Subtitles.
-* **Concat:** Line-separated video merging via stream-copy (no re-encoding) or full H.264 re-encoding.
+* **Encode:** Convert videos to different formats (MP4, WebM, GIF, Audio) and trim clips
+* **Edit:** Add text, crop, rotate, flip, change speed, adjust volume, add fades
+* **Concat:** Merge multiple videos together
 
 ---
 
 ## Troubleshooting
 
-* **Missing Icons (Boxes):** Ensure your terminal is actively using a Nerd Font. For Kitty, add `font_family Hack Nerd Font` (or your preferred Nerd Font) to your `kitty.conf`.
-* **No Previews:** Previews strictly require running inside the active **Kitty terminal** environment with `ffmpeg` fully available in your system path.
+* **No video preview:** Make sure you're running inside **Kitty terminal** (not another terminal)
+* **ffmpeg not found:** Install ffmpeg: `sudo apt install ffmpeg` (Linux) or `brew install ffmpeg` (macOS)
+* **App won't start:** Try running `./run.sh` again to reinstall dependencies
 
 ## Project Structure
 
