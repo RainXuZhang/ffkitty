@@ -44,6 +44,10 @@ from ffkitty.kitty_image import extract_frame, is_kitty
 
 
 class ReadmeScreen(ModalScreen[None]):
+    BINDINGS = [
+        Binding("escape", "dismiss", "Close"),
+    ]
+
     DEFAULT_CSS = """
     ReadmeScreen {
         background: $surface;
@@ -63,6 +67,9 @@ class ReadmeScreen(ModalScreen[None]):
 
     def compose(self) -> ComposeResult:
         yield Static(id="readme-content")
+
+    def action_dismiss(self) -> None:
+        self.dismiss()
 
     def on_mount(self) -> None:
         readme_path = Path(__file__).parent.parent / "README.md"
@@ -303,7 +310,9 @@ class ToolPanel(Button):
             self.app._activate_tab("edit-tab")
         elif self._action == "concat":
             self.app._activate_tab("concat-tab")
-        elif self._action ==
+        elif self._action == "readme":
+            self.app.action_show_readme()
+
 
 def describe_tool_context(tab_id: str, input_path: Path | None = None, action: str | None = None) -> str:
     if action == "open":
@@ -320,6 +329,8 @@ def describe_tool_context(tab_id: str, input_path: Path | None = None, action: s
         return "Trim • Set a clip range and export it"
     if action == "text":
         return "Text • Add captions and titles to your export"
+    if action == "readme":
+        return "Readme • View the application documentation"
     if tab_id == "edit-tab":
         return "Edit • Transform • Text overlay"
     if tab_id == "concat-tab":
@@ -916,6 +927,11 @@ class FfkittyApp(App[None]):
         self._set_tool_context("run")
         self.action_run_job()
 
+    @on(Button.Pressed, "#btn-readme")
+    def on_readme_pressed(self) -> None:
+        self._set_tool_context("readme")
+        self.action_show_readme()
+
     def _activate_tab(self, pane_id: str, action: str | None = None) -> None:
         self.active_tab = pane_id
         self.query_one("#tabs", TabbedContent).active = pane_id
@@ -977,6 +993,9 @@ class FfkittyApp(App[None]):
             )
             return
         self.run_ffmpeg(job)
+
+    def action_show_readme(self) -> None:
+        self.push_screen(ReadmeScreen())
 
     @work(exclusive=True)
     async def run_ffmpeg(self, job: FfmpegJob | ConcatJob) -> None:
