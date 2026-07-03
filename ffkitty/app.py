@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import io
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 from textual import on, work
@@ -14,89 +14,59 @@ from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.css.query import NoMatches
 from textual.screen import ModalScreen
 from textual.widgets import (
-    Button,
-    Checkbox,
-    DirectoryTree,
-    Footer,
-    Header,
-    Input,
-    Label,
-    ListItem,
-    ListView,
-    ProgressBar,
-    Select,
-    Static,
-    TabbedContent,
-    TabPane,
-    TextArea,
+    Button, Checkbox, DirectoryTree, Footer, Header,
+    Input, Label, ListView, ProgressBar, Select,
+    Static, TabbedContent, TabPane, TextArea,
 )
 from textual_image.widget import AutoImage
 
 from ffkitty import __version__
-from ffkitty.edit_ops import ConcatJob, EditSettings, build_timeline_summary
+from ffkitty.edit_ops import ConcatJob, EditSettings
 from ffkitty.ffmpeg_ops import (
-    PRESET_NAMES,
-    FfmpegJob,
-    default_output_path,
-    format_duration,
-    parse_ffmpeg_progress,
-    probe_media,
+    PRESET_NAMES, FfmpegJob, default_output_path,
+    format_duration, parse_ffmpeg_progress, probe_media,
 )
 from ffkitty.kitty_image import extract_frame, is_kitty
 
-
-# Nerd Font icons for intuitive UI
-ICON_PROJECT = "\U000f0055"
-ICON_CLIP = "\U000f0214"
-ICON_EFFECTS = "\U000f0215"
-ICON_PROPERTIES = "\U000f0216"
-ICON_MONITOR = "\U000f0217"
-ICON_RENDER = "\U000f0218"
-ICON_PLAY = "\U000f0219"
-ICON_STOP = "\U000f021a"
-ICON_ADD = "\U000f021b"
-ICON_REMOVE = "\U000f021c"
-ICON_CUT = "\U000f021d"
-ICON_COPY = "\U000f021e"
-ICON_PASTE = "\U000f021f"
-ICON_UNDO = "\U000f0220"
-ICON_REDO = "\U000f0221"
-ICON_ZOOM = "\U000f0222"
-ICON_AUDIO = "\U000f0223"
-ICON_VIDEO = "\U000f0224"
-ICON_TEXT = "\U000f0225"
-ICON_TRANSITION = "\U000f0226"
-ICON_KEYFRAME = "\U000f0227"
-ICON_LOCK = "\U000f0228"
-ICON_MUTE = "\U000f0229"
-ICON_SNAP = "\U000f022a"
-ICON_MARKER = "\U000f022b"
-ICON_TIMELINE = "\U000f022c"
-ICON_TRACK = "\U000f022d"
-ICON_SPACING = "\U000f022e"
-ICON_ROLL = "\U000f022f"
-ICON_CROP = "\U000f0230"
-ICON_SCALE = "\U000f0231"
-ICON_ROTATE = "\U000f0232"
-ICON_FLIP = "\U000f0233"
-ICON_SPEED = "\U000f0234"
-ICON_VOLUME = "\U000f0235"
-ICON_FADE = "\U000f0236"
-ICON_DENOISE = "\U000f0237"
-ICON_SHARPEN = "\U000f0238"
-ICON_SUBTITLES = "\U000f0239"
-ICON_OVERWRITE = "\U000f023a"
-ICON_TIME = "\U000f023b"
-ICON_PRESET = "\U000f023c"
-ICON_EXPORT = "\U000f023d"
-ICON_IMPORT = "\U000f023e"
-ICON_SAVE = "\U000f023f"
-ICON_OPEN = "\U000f0240"
+NF = {
+    "PROJECT": "\U000f0055", "CLIP": "\U000f0214",
+    "EFFECTS": "\U000f0215", "PROPERTIES": "\U000f0216",
+    "MONITOR": "\U000f0217", "RENDER": "\U000f0218",
+    "PLAY": "\U000f0219", "STOP": "\U000f021a",
+    "ADD": "\U000f021b", "CUT": "\U000f021d",
+    "COPY": "\U000f021e", "PASTE": "\U000f021f",
+    "UNDO": "\U000f0220", "REDO": "\U000f0221",
+    "ZOOM": "\U000f0222", "AUDIO": "\U000f0223",
+    "VIDEO": "\U000f0224", "TIMELINE": "\U000f022c",
+    "TRACK": "\U000f022d", "SAVE": "\U000f023f",
+    "OPEN": "\U000f0240", "FOLDER": "\U000f0241",
+    "FILE": "\U000f0242", "MENU": "\U000f0243",
+    "SETTINGS": "\U000f0244", "HELP": "\U000f0245",
+    "EXPORT": "\U000f023d", "IMPORT": "\U000f023e",
+    "TRASH": "\U000f02b8", "HISTORY": "\U000f02b6",
+    "SEARCH": "\U000f024b", "NEW": "\U000f024d",
+    "EXIT": "\U000f024f", "DISC": "\U000f02bd",
+    "CLOCK": "\U000f0269", "CHECK": "\U000f0249",
+    "CLOSE": "\U000f024a", "WARNING": "\U000f0608",
+    "ERROR": "\U000f0609", "INFO": "\U000f060a",
+    "PLUS": "\U000f060f", "MINUS": "\U000f0610",
+    "MUSIC": "\U000f029b", "RECORD": "\U000f0347",
+    "REFRESH": "\U000f0276", "SYNC": "\U000f0277",
+    "SPEED": "\U000f0234", "VOLUME": "\U000f0235",
+    "FADE": "\U000f0236", "TIME": "\U000f023b",
+    "CROP": "\U000f0230", "SCALE": "\U000f0231",
+    "ROTATE": "\U000f0232", "FLIP": "\U000f0233",
+    "LOCK": "\U000f0228", "MUTE": "\U000f0229",
+    "SNAP": "\U000f022a", "MARKER": "\U000f022b",
+    "TRANSITION": "\U000f0226", "KEYFRAME": "\U000f0227",
+    "TEXT": "\U000f0225", "FILM": "\U000f032b",
+    "MOVIE": "\U000f032a", "LIGHT": "\U000f0282",
+    "DARK": "\U000f0283", "HOME": "\U000f024c",
+}
 
 
 @dataclass
 class Clip:
-    """Represents a media clip in the project bin."""
     path: Path
     duration: float = 0.0
     in_point: str = "00:00:00"
@@ -104,45 +74,30 @@ class Clip:
     track: int = 0
     start_time: str = "00:00:00"
     name: str = ""
-    
+
     def __post_init__(self) -> None:
         if not self.name:
             self.name = self.path.name
 
 
 class ReadmeScreen(ModalScreen[None]):
-    BINDINGS = [
-        Binding("escape", "dismiss", "Close"),
-    ]
-
+    BINDINGS = [Binding("escape", "dismiss", "Close")]
     DEFAULT_CSS = """
-    ReadmeScreen {
-        background: $surface;
-        padding: 2 4;
-    }
-
+    ReadmeScreen { background: $surface; padding: 2 4; }
     ReadmeScreen #readme-content {
-        width: 100%;
-        height: 1fr;
-        border: solid $primary;
-        padding: 2;
-        background: $panel;
-        color: $text;
-        overflow-y: auto;
+        width: 100%; height: 1fr; border: solid $primary;
+        padding: 2; background: $panel; color: $text; overflow-y: auto;
     }
     """
 
     def compose(self) -> ComposeResult:
         yield Static(id="readme-content")
 
-    def action_dismiss(self) -> None:
-        self.dismiss()
-
     def on_mount(self) -> None:
-        readme_path = Path(__file__).parent.parent / "README.md"
-        if readme_path.exists():
-            content = readme_path.read_text()
-            lines = content.splitlines()
+        p = Path(__file__).parent.parent / "README.md"
+        if p.exists():
+            c = p.read_text()
+            lines = c.splitlines()
             if lines and lines[0].startswith("# "):
                 lines = lines[1:]
             self.query_one("#readme-content", Static).update("\n".join(lines))
@@ -175,40 +130,20 @@ class FilePicker(ModalScreen[Path | None]):
     def action_confirm(self) -> None:
         tree = self.query_one("#tree", DirectoryTree)
         if tree.cursor_node and tree.cursor_node.data:
-            path = Path(str(tree.cursor_node.data.path))
-            if path.is_file():
-                self.dismiss(path)
+            p = Path(str(tree.cursor_node.data.path))
+            if p.is_file():
+                self.dismiss(p)
 
 
 class PreviewPanel(Vertical):
     DEFAULT_CSS = """
-    PreviewPanel {
-        height: auto;
-        min-height: 22;
-        max-height: 42;
-        border: none;
-        padding: 0;
-        background: transparent;
-        align: center middle;
-    }
-
-    PreviewPanel AutoImage {
-        width: 100%;
-        height: auto;
-        max-height: 34;
-        min-height: 20;
-        content-align: center middle;
-        border: solid $primary;
-        padding: 1;
-        background: $surface;
-    }
-
-    PreviewPanel #preview-status {
-        height: auto;
-        color: $text;
-        padding-top: 1;
-        text-align: center;
-    }
+    PreviewPanel { height: auto; min-height: 22; max-height: 42;
+        border: none; padding: 0; background: transparent; align: center middle; }
+    PreviewPanel AutoImage { width: 100%; height: auto; max-height: 34;
+        min-height: 20; content-align: center middle; border: solid $primary;
+        padding: 1; background: $surface; }
+    PreviewPanel #preview-status { height: auto; color: $text;
+        padding-top: 1; text-align: center; }
     """
 
     def __init__(self, *args, **kwargs) -> None:
@@ -223,15 +158,13 @@ class PreviewPanel(Vertical):
     def set_source(self, path: Path | None, timestamp: str = "00:00:01") -> None:
         self._input = path
         self._timestamp = timestamp
-        status = self.query_one("#preview-status", Static)
-        image = self.query_one("#preview-image", AutoImage)
-
+        st = self.query_one("#preview-status", Static)
+        img = self.query_one("#preview-image", AutoImage)
         if not path:
-            image.image = None
-            status.update("No file selected")
+            img.image = None
+            st.update("No file selected")
             return
-
-        status.update("[dim]Loading preview…[/dim]")
+        st.update("[dim]Loading preview...[/dim]")
         self.refresh_preview()
 
     @work(thread=True)
@@ -244,45 +177,41 @@ class PreviewPanel(Vertical):
             return
         self.app.call_from_thread(self._show_frame, png)
 
-    def _show_error(self, message: str) -> None:
+    def _show_error(self, msg: str) -> None:
         self.query_one("#preview-image", AutoImage).image = None
-        self.query_one("#preview-status", Static).update(f"[red]{message}[/red]")
+        self.query_one("#preview-status", Static).update(f"[red]{msg}[/red]")
 
     def _show_frame(self, png: bytes) -> None:
         self.query_one("#preview-image", AutoImage).image = io.BytesIO(png)
         self.query_one("#preview-status", Static).update(
-            f"[dim]Frame at {self._timestamp} — [ {ICON_ADD} sets in, ] {ICON_CUT} sets out[/dim]"
+            f"[dim]Frame at {self._timestamp}[/dim]"
         )
 
 
 class InfoPanel(Static):
     DEFAULT_CSS = """
-    InfoPanel {
-        height: auto;
-        border: solid $primary;
-        padding: 1 1;
-        background: $panel;
-        color: $text;
-    }
+    InfoPanel { height: auto; border: solid $primary;
+        padding: 1; background: $panel; color: $text; }
     """
 
     def show_info(self, path: Path | None) -> None:
         if not path:
             self.update("Select a media file to inspect.")
             return
-
         info = probe_media(path)
         if info.error:
             self.update(f"[red]{info.error}[/red]")
             return
-
         lines = [
             f"[bold]{path.name}[/bold]",
             f"Format: {info.format_name or 'unknown'}",
             f"Duration: {format_duration(info.duration)}",
         ]
         if info.width and info.height:
-            lines.append(f"Video: {info.video_codec} {info.width}x{info.height} @ {info.fps or '?'} fps")
+            lines.append(
+                f"Video: {info.video_codec} {info.width}x{info.height} @ "
+                f"{info.fps or '?'} fps"
+            )
         if info.audio_codec:
             lines.append(f"Audio: {info.audio_codec}")
         if info.bitrate:
@@ -292,16 +221,9 @@ class InfoPanel(Static):
 
 class CommandPreview(Static):
     DEFAULT_CSS = """
-    CommandPreview {
-        height: auto;
-        max-height: 7;
-        min-height: 3;
-        border: solid $primary;
-        padding: 1 1;
-        overflow-y: auto;
-        background: $panel;
-        color: $text;
-    }
+    CommandPreview { height: auto; max-height: 7; min-height: 3;
+        border: solid $primary; padding: 1; overflow-y: auto;
+        background: $panel; color: $text; }
     """
 
     def show_command(self, cmd: list[str]) -> None:
@@ -309,350 +231,71 @@ class CommandPreview(Static):
 
 
 class TimelinePanel(Static):
-    """Timeline panel showing clip positions and selection."""
     DEFAULT_CSS = """
-    TimelinePanel {
-        height: 3;
-        border: solid $primary;
-        padding: 0 1;
-        background: $panel;
-        color: $text;
-    }
+    TimelinePanel { height: 3; border: solid $primary;
+        padding: 0 1; background: $panel; color: $text; }
     """
 
     def update_selection(self, start: str, end: str, preview_time: str) -> None:
-        """Update the timeline display with current selection."""
-        # Simple placeholder implementation
-        self.update(f"{ICON_TIMELINE} Timeline: {start or '—'} → {end or '—'} | Preview: {preview_time or '00:00:01'}")
-
-
-class TimelineTrack(Static):
-    """A single track in the timeline."""
-    DEFAULT_CSS = """
-    TimelineTrack {
-        height: 3;
-        border: solid $primary;
-        padding: 0 1;
-        background: $panel;
-        color: $text;
-    }
-    """
-
-
-class ToolPanel(Button):
-    DEFAULT_CSS = """
-    ToolPanel {
-        height: 3;
-        padding: 0 1;
-        margin-bottom: 1;
-        background: $panel;
-        color: $text;
-        border: solid $primary;
-        width: 1fr;
-        text-align: left;
-    }
-
-    ToolPanel:hover {
-        background: $boost;
-    }
-
-    ToolPanel:focus {
-        background: $secondary;
-    }
-    """
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._action: str | None = None
-        self._tab_id = "project-tab"
-        self._input_path: Path | None = None
-
-    def update_context(self, tab_id: str, input_path: Path | None = None, action: str | None = None) -> None:
-        self._action = action
-        self._tab_id = tab_id
-        self._input_path = input_path
-        self.label = describe_tool_context(tab_id, input_path, action)
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button is not self:
-            return
-        if self._action == "open":
-            self.app.action_open_file()
-        elif self._action == "preview":
-            self.app.action_refresh_preview()
-        elif self._action == "start":
-            self.app.action_mark_in()
-        elif self._action == "end":
-            self.app.action_mark_out()
-        elif self._action == "run":
-            self.app.action_render()
-        elif self._action == "add_clip":
-            self.app.action_add_clip()
-        elif self._action == "cut":
-            self.app.action_cut()
-        elif self._action == "copy":
-            self.app.action_copy()
-        elif self._action == "paste":
-            self.app.action_paste()
-
-
-def describe_tool_context(tab_id: str, input_path: Path | None = None, action: str | None = None) -> str:
-    if action == "open":
-        return f"{ICON_IMPORT} Import • Add media to project bin"
-    if action == "preview":
-        return f"{ICON_MONITOR} Monitor • Preview current frame"
-    if action == "start":
-        return f"{ICON_ADD} Mark In • Set clip start point"
-    if action == "end":
-        return f"{ICON_CUT} Mark Out • Set clip end point"
-    if action == "run":
-        return f"{ICON_RENDER} Render • Export your project"
-    if action == "add_clip":
-        return f"{ICON_ADD} Add Clip • Add to timeline"
-    if action == "cut":
-        return f"{ICON_CUT} Cut • Split clip at playhead"
-    if action == "copy":
-        return f"{ICON_COPY} Copy • Copy selected clip"
-    if action == "paste":
-        return f"{ICON_PASTE} Paste • Paste clip to timeline"
-    if tab_id == "project-tab":
-        return f"{ICON_PROJECT} Project • Manage clips and assets"
-    if tab_id == "timeline-tab":
-        return f"{ICON_TIMELINE} Timeline • Arrange and edit clips"
-    if tab_id == "effects-tab":
-        return f"{ICON_EFFECTS} Effects • Add filters and transitions"
-    if tab_id == "properties-tab":
-        return f"{ICON_PROPERTIES} Properties • Adjust clip settings"
-    return f"{ICON_PROJECT} ffkitty • Kdenlive-style TUI editor"
-
-
-def get_quick_actions() -> list[tuple[str, str]]:
-    return [
-        (f"{ICON_IMPORT} Import", "open"),
-        (f"{ICON_ADD} Add Clip", "add_clip"),
-        (f"{ICON_CUT} Cut", "cut"),
-        (f"{ICON_COPY} Copy", "copy"),
-        (f"{ICON_PASTE} Paste", "paste"),
-        (f"{ICON_RENDER} Render", "run"),
-    ]
+        self.update(
+            f"{NF['TIMELINE']} Timeline: {start or '---'} -> "
+            f"{end or '---'} | Preview: {preview_time or '00:00:01'}"
+        )
 
 
 class FfkittyApp(App[None]):
     TITLE = "ffkitty"
-    SUB_TITLE = f"v{__version__} — Kdenlive-style TUI video editor"
+    SUB_TITLE = f"v{__version__}"
 
     CSS = """
-    App {
-        background: $surface;
-        color: $text;
-    }
-
-    Screen {
-        layout: vertical;
-        background: $surface;
-    }
-
-    #main {
-        height: 1fr;
-        padding: 1 2;
-    }
-
-    #workspace {
-        height: 1fr;
-    }
-
-    #sidebar {
-        width: 20;
-        padding-right: 1;
-    }
-
-    #sidebar-title {
-        text-style: bold;
-        margin-bottom: 1;
-    }
-
-    #sidebar Button {
-        width: 1fr;
-        min-width: 0;
-        height: 3;
-        margin-bottom: 1;
-        padding: 0 1;
-        background: $panel;
-        color: $text;
-        border: none;
-        text-align: left;
-    }
-
-    #sidebar Button:hover {
-        background: $primary;
-    }
-
-    #sidebar Button.-primary {
-        background: $boost;
-    }
-
-    #sidebar Button.-success {
-        background: $success;
-    }
-
-    #content {
-        width: 1fr;
-    }
-
-    #tool-panel {
-        margin-bottom: 1;
-    }
-
-    #top-bar {
-        height: auto;
-        margin-bottom: 1;
-    }
-
-    #top-info {
-        width: 1fr;
-        min-width: 30;
-        margin-right: 1;
-    }
-
-    #preview {
-        width: 1fr;
-        min-width: 30;
-    }
-
+    App { background: $surface; color: $text; }
+    Screen { layout: vertical; background: $surface; }
+    #menu { height: 3; }
+    #menu Button { height: 3; min-width: 10; background: transparent;
+        border: none; padding: 0 2; text-align: center; }
+    #menu Button:hover { background: $boost; }
+    #menu Button:focus { background: $secondary; }
+    #main { height: 1fr; padding: 0 1 1 1; }
+    #sidebar { width: 22; padding-right: 1; }
+    #sidebar-title { text-style: bold; margin-bottom: 1; padding: 0 1; }
+    #sidebar Button { width: 1fr; min-width: 0; height: 3;
+        margin-bottom: 1; padding: 0 1; background: $panel;
+        color: $text; border: none; text-align: left; }
+    #sidebar Button:hover { background: $primary; }
+    #sidebar Button.-primary { background: $boost; }
+    #sidebar Button.-success { background: $success; }
+    #content { width: 1fr; }
+    #top-bar { height: auto; margin-bottom: 1; }
+    #top-info { width: 1fr; min-width: 30; margin-right: 1; }
     #top-info, #preview, #timeline, #bottom-panel {
-        background: $panel;
-        border: solid $primary;
-    }
-
-    #timeline {
-        height: 3;
-        margin-bottom: 1;
-    }
-
-    #bottom-panel {
-        height: 1fr;
-        padding: 1;
-    }
-
-    #tabs {
-        height: auto;
-    }
-
-    #tabs TabPane {
-        padding: 1;
-        background: $surface;
-    }
-
-    #controls {
-        margin-top: 1;
-    }
-
-    #controls Input, #controls Select {
-        margin-bottom: 1;
-    }
-
-    #controls Checkbox {
-        margin-bottom: 1;
-    }
-
-    #preset-select {
-        margin-bottom: 1;
-    }
-
-    #text-buttons {
-        height: auto;
-        margin-bottom: 1;
-    }
-
-    #text-buttons Button {
-        min-width: 0;
-        height: 3;
-        margin-right: 1;
-        padding: 0 1;
-    }
-
-    #concat-files {
-        height: 8;
-        margin-bottom: 1;
-    }
-
-    #progress-area {
-        height: auto;
-        padding: 1;
-    }
-
-    #status {
-        height: auto;
-        padding: 1;
-    }
-
-    Input, Select, TextArea {
-        background: $surface;
-        color: $text;
-        border: solid $primary;
-        padding: 0 1;
-    }
-
-    Button {
-        background: $panel;
-        color: $text;
-        border: none;
-        padding: 0 1;
-    }
-
-    Button.-primary {
-        background: $boost;
-    }
-
-    Button.-success {
-        background: $success;
-    }
-
-    Button:hover {
-        background: $primary;
-    }
-
-    Button:focus {
-        background: $secondary;
-    }
-
-    ProgressBar {
-        color: $success;
-        background: $panel;
-    }
-
-    .field-row {
-        height: auto;
-        margin-bottom: 1;
-    }
-
-    .field-row Input {
-        width: 1fr;
-    }
-
-    .compact-row {
-        height: auto;
-        margin-bottom: 1;
-    }
-
-    .compact-row Label {
-        min-width: 8;
-        margin-right: 1;
-    }
-
-    .compact-row Input {
-        width: 1fr;
-    }
+        background: $panel; border: solid $primary; }
+    #timeline { height: 3; margin-bottom: 1; }
+    #bottom-panel { height: 1fr; padding: 1; }
+    #tabs TabPane { padding: 1; background: $surface; }
+    #progress-area { height: auto; padding: 1; }
+    #status { height: auto; padding: 1; }
+    Input, Select, TextArea { background: $surface; color: $text;
+        border: solid $primary; padding: 0 1; }
+    Button { background: $panel; color: $text; border: none; padding: 0 1; }
+    Button.-primary { background: $boost; }
+    Button.-success { background: $success; }
+    Button:hover { background: $primary; }
+    Button:focus { background: $secondary; }
+    ProgressBar { color: $success; background: $panel; }
+    .compact-row { height: auto; margin-bottom: 1; }
+    .compact-row Label { min-width: 8; margin-right: 1; }
+    .compact-row Input { width: 1fr; }
     """
 
     BINDINGS = [
-        Binding("o", "open_file", "Import"),
+        Binding("o", "open_file", "Browse Files"),
         Binding("i", "mark_in", "Mark In"),
-        Binding("o", "mark_out", "Mark Out"),
+        Binding("u", "mark_out", "Mark Out"),
         Binding("x", "cut", "Cut"),
         Binding("c", "copy", "Copy"),
         Binding("v", "paste", "Paste"),
         Binding("r", "render", "Render"),
+        Binding("escape", "show_readme", "README"),
         Binding("q", "quit", "Quit"),
     ]
 
@@ -668,28 +311,28 @@ class FfkittyApp(App[None]):
         self.current_time: str = "00:00:01"
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield Header(show_clock=True)
+        with Horizontal(id="menu"):
+            yield Button(f"{NF['FOLDER']} Browse Files", id="mnu-browse", variant="primary")
+            yield Button(f"{NF['ADD']} Add Clip", id="mnu-add")
+            yield Button(f"{NF['CUT']} Cut", id="mnu-cut")
+            yield Button(f"{NF['COPY']} Copy", id="mnu-copy")
+            yield Button(f"{NF['PASTE']} Paste", id="mnu-paste")
+            yield Button(f"{NF['RENDER']} Render", id="mnu-render", variant="success")
+            yield Button(f"{NF['HELP']} README", id="mnu-readme")
         with Vertical(id="main"):
             with Horizontal(id="workspace"):
                 with Vertical(id="sidebar"):
-                    yield Static("[bold]Quick actions[/bold]", id="sidebar-title")
-                    for label, button_id in get_quick_actions():
-                        if button_id == "open":
-                            yield Button(label, id="btn-open", variant="primary")
-                        elif button_id == "run":
-                            yield Button(label, id="btn-run", variant="success")
-                        elif button_id == "add_clip":
-                            yield Button(label, id="btn-add-clip")
-                        elif button_id == "cut":
-                            yield Button(label, id="btn-cut")
-                        elif button_id == "copy":
-                            yield Button(label, id="btn-copy")
-                        elif button_id == "paste":
-                            yield Button(label, id="btn-paste")
-                        else:
-                            yield Button(label, id=f"btn-{button_id}")
+                    yield Static("[bold]Project Tools[/bold]", id="sidebar-title")
+                    yield Button(f"{NF['FOLDER']} Browse Files", id="btn-open", variant="primary")
+                    yield Button(f"{NF['ADD']} Add Clip", id="btn-add-clip")
+                    yield Button(f"{NF['CUT']} Cut", id="btn-cut")
+                    yield Button(f"{NF['COPY']} Copy", id="btn-copy")
+                    yield Button(f"{NF['PASTE']} Paste", id="btn-paste")
+                    yield Button(f"{NF['RENDER']} Render", id="btn-run", variant="success")
+                    yield Button(f"{NF['HELP']} README", id="btn-readme")
+                    yield Button(f"{NF['EXIT']} Quit", id="btn-quit")
                 with Vertical(id="content"):
-                    yield ToolPanel(id="tool-panel")
                     with Horizontal(id="top-bar"):
                         with Vertical(id="top-info"):
                             yield InfoPanel(id="info")
@@ -698,85 +341,93 @@ class FfkittyApp(App[None]):
                     yield TimelinePanel(id="timeline")
                     with VerticalScroll(id="bottom-panel"):
                         with TabbedContent(id="tabs"):
-                            with TabPane("Project", id="project-tab"):
-                                yield Static(f"[bold]{ICON_CLIP} Project Bin[/bold]")
+                            with TabPane(f"{NF['PROJECT']} Project", id="project-tab"):
+                                yield Static(f"[bold]{NF['CLIP']} Project Bin[/bold]")
                                 yield ListView(id="clip-list")
                                 with Horizontal(classes="compact-row"):
-                                    yield Button(f"{ICON_IMPORT} Import", id="btn-import", variant="primary")
-                                    yield Button(f"{ICON_ADD} Add", id="btn-add-to-timeline")
-                            with TabPane("Timeline", id="timeline-tab"):
-                                yield Static(f"[bold]{ICON_TIMELINE} Timeline[/bold]")
-                                yield Label(f"{ICON_TRACK} Video Track 1")
+                                    yield Button(f"{NF['FOLDER']} Browse Files", id="btn-import", variant="primary")
+                                    yield Button(f"{NF['ADD']} Add to Timeline", id="btn-add-to-timeline")
+                            with TabPane(f"{NF['TIMELINE']} Timeline", id="timeline-tab"):
+                                yield Static(f"[bold]{NF['TIMELINE']} Timeline[/bold]")
+                                yield Label(f"{NF['VIDEO']} Video Track 1")
                                 yield ListView(id="timeline-track-1")
-                                yield Label(f"{ICON_AUDIO} Audio Track 1")
+                                yield Label(f"{NF['AUDIO']} Audio Track 1")
                                 yield ListView(id="timeline-track-2")
-                            with TabPane("Effects", id="effects-tab"):
-                                yield Static(f"[bold]{ICON_EFFECTS} Effects & Filters[/bold]")
+                            with TabPane(f"{NF['EFFECTS']} Effects", id="effects-tab"):
+                                yield Static(f"[bold]{NF['EFFECTS']} Effects & Filters[/bold]")
                                 yield Select(
-                                    [(f"{ICON_CROP} Crop", "crop"), (f"{ICON_SCALE} Scale", "scale"),
-                                     (f"{ICON_ROTATE} Rotate", "rotate"), (f"{ICON_FLIP} Flip", "flip")],
-                                    value="crop",
-                                    id="effect-type",
+                                    [(f"{NF['CROP']} Crop", "crop"),
+                                     (f"{NF['SCALE']} Scale", "scale"),
+                                     (f"{NF['ROTATE']} Rotate", "rotate"),
+                                     (f"{NF['FLIP']} Flip", "flip")],
+                                    value="crop", id="effect-type",
                                 )
-                            with TabPane("Properties", id="properties-tab"):
-                                yield Static(f"[bold]{ICON_PROPERTIES} Clip Properties[/bold]")
-                                yield Label(f"{ICON_TIME} Duration")
+                            with TabPane(f"{NF['PROPERTIES']} Properties", id="properties-tab"):
+                                yield Static(f"[bold]{NF['PROPERTIES']} Clip Properties[/bold]")
+                                yield Label(f"{NF['CLOCK']} Duration")
                                 yield Input(placeholder="00:00:00", id="prop-duration")
-                                yield Label(f"{ICON_SPEED} Speed")
+                                yield Label(f"{NF['SPEED']} Speed")
                                 yield Input(value="1.0", id="prop-speed")
                     with Vertical(id="progress-area"):
                         yield ProgressBar(total=100, show_eta=False, id="progress")
-                    yield Static("Ready.", id="status")
+                    yield Static(f"{NF['CHECK']} Ready.", id="status")
         yield Footer()
 
     def on_mount(self) -> None:
         self._install_theme()
         self._update_command_preview()
-        self._update_tool_panel()
         if is_kitty():
-            self.query_one("#status", Static).update("Kitty detected — inline preview enabled.")
+            self.query_one("#status", Static).update(
+                f"{NF['CHECK']} Kitty detected - inline preview enabled."
+            )
         else:
             self.query_one("#status", Static).update(
-                "Not running in Kitty — previews disabled, encoding still works."
+                f"{NF['INFO']} Not in Kitty - previews disabled, encoding works."
             )
 
     def _install_theme(self) -> None:
         from textual.theme import Theme
-
         self._theme = Theme(
-            name="ffkitty-light",
-            primary="#3b82f6",
-            secondary="#6366f1",
-            accent="#8b5cf6",
-            success="#22c55e",
-            warning="#f59e0b",
-            error="#ef4444",
-            surface="#f8fafc",
-            panel="#e2e8f0",
-            boost="#dbeafe",
+            name="ffkitty-light", primary="#3b82f6",
+            secondary="#6366f1", accent="#8b5cf6",
+            success="#22c55e", warning="#f59e0b",
+            error="#ef4444", surface="#f8fafc",
+            panel="#e2e8f0", boost="#dbeafe",
         )
         self.register_theme(self._theme)
 
-    def _parse_int(self, widget_id: str) -> int:
+    def _get_input(self, wid: str, default: str = "") -> str:
         try:
-            text = self.query_one(f"#{widget_id}", Input).value.strip()
-            return int(text) if text.isdigit() else 0
-        except NoMatches:
-            return 0
-
-    def _parse_float(self, widget_id: str, default: float = 0.0) -> float:
-        try:
-            text = self.query_one(f"#{widget_id}", Input).value.strip()
-            return float(text) if text else default
+            return self.query_one(f"#{wid}", Input).value.strip()
         except NoMatches:
             return default
 
-    def _get_edits(self) -> EditSettings:
+    def _get_checkbox(self, wid: str) -> bool:
         try:
-            rotate_val = self.query_one("#rotate", Select).value
-            rotate = int(rotate_val) if rotate_val and str(rotate_val).isdigit() else 0
+            return self.query_one(f"#{wid}", Checkbox).value
         except NoMatches:
-            rotate = 0
+            return False
+
+    def _get_select(self, wid: str) -> str | None:
+        try:
+            return str(self.query_one(f"#{wid}", Select).value)
+        except NoMatches:
+            return None
+
+    def _parse_int(self, wid: str) -> int:
+        t = self._get_input(wid)
+        return int(t) if t.isdigit() else 0
+
+    def _parse_float(self, wid: str, default: float = 0.0) -> float:
+        t = self._get_input(wid)
+        try:
+            return float(t) if t else default
+        except ValueError:
+            return default
+
+    def _get_edits(self) -> EditSettings:
+        rv = self._get_select("rotate")
+        rot = int(rv) if rv and rv.isdigit() else 0
         return EditSettings(
             crop_x=self._parse_int("crop-x"),
             crop_y=self._parse_int("crop-y"),
@@ -784,7 +435,7 @@ class FfkittyApp(App[None]):
             crop_h=self._parse_int("crop-h"),
             scale_w=self._parse_int("scale-w"),
             scale_h=self._parse_int("scale-h"),
-            rotate=rotate,
+            rotate=rot,
             hflip=self._get_checkbox("hflip"),
             vflip=self._get_checkbox("vflip"),
             speed=max(self._parse_float("speed", 1.0), 0.01),
@@ -796,46 +447,23 @@ class FfkittyApp(App[None]):
             sharpen=self._get_checkbox("sharpen"),
             subtitles=self._get_input("subtitles"),
             text_overlay=self._get_input("text-overlay"),
-            text_x=self._get_input("text-x"),
-            text_y=self._get_input("text-y"),
+            text_x=self._get_input("text-x", "10"),
+            text_y=self._get_input("text-y", "10"),
             text_fontsize=max(self._parse_int("text-size"), 1),
-            text_color=self._get_input("text-color"),
+            text_color=self._get_input("text-color", "white"),
             text_box=self._get_checkbox("text-box"),
         )
-
-    def _get_checkbox(self, widget_id: str) -> bool:
-        try:
-            return self.query_one(f"#{widget_id}", Checkbox).value
-        except NoMatches:
-            return False
-
-    def _get_input(self, widget_id: str, default: str = "") -> str:
-        try:
-            return self.query_one(f"#{widget_id}", Input).value.strip()
-        except NoMatches:
-            return default
-
-    def _get_select(self, widget_id: str) -> str | None:
-        try:
-            return str(self.query_one(f"#{widget_id}", Select).value)
-        except NoMatches:
-            return None
 
     def _get_encode_job(self) -> FfmpegJob | None:
         if not self.input_path or not self.input_path.exists():
             return None
-
-        output_text = self._get_input("output-path")
-        output = Path(output_text) if output_text else default_output_path(self.input_path, self.selected_preset)
-
+        ot = self._get_input("output-path")
+        out = Path(ot) if ot else default_output_path(self.input_path, self.selected_preset)
         extra = self._get_input("extra-args")
-        extra_args = extra.split() if extra else []
-
         return FfmpegJob(
-            input_path=self.input_path,
-            output_path=output,
+            input_path=self.input_path, output_path=out,
             preset=self.selected_preset,
-            extra_args=extra_args,
+            extra_args=extra.split() if extra else [],
             start=self._get_input("start-time"),
             end=self._get_input("end-time"),
             overwrite=self._get_select("overwrite") == "yes",
@@ -843,92 +471,159 @@ class FfkittyApp(App[None]):
         )
 
     def _get_concat_job(self) -> ConcatJob | None:
-        text = self.query_one("#concat-files", TextArea).text.strip() if self.query_one("#concat-files", TextArea) else ""
+        try:
+            text = self.query_one("#concat-files", TextArea).text.strip()
+        except NoMatches:
+            return None
         if not text:
             return None
-        inputs = [Path(line.strip()) for line in text.splitlines() if line.strip()]
+        inputs = [Path(l.strip()) for l in text.splitlines() if l.strip()]
         if len(inputs) < 2:
             return None
-        for path in inputs:
-            if not path.exists():
+        for p in inputs:
+            if not p.exists():
                 return None
-
-        output_text = self.query_one("#concat-output", Input).value.strip() if self.query_one("#concat-output", Input) else ""
-        if output_text:
-            output = Path(output_text)
-        else:
-            output = inputs[0].with_name(f"{inputs[0].stem}_merged.mp4")
-
+        ot = self._get_input("concat-output")
+        out = Path(ot) if ot else inputs[0].with_name(f"{inputs[0].stem}_merged.mp4")
         return ConcatJob(
-            inputs=inputs,
-            output_path=output,
-            overwrite=self.query_one("#concat-overwrite", Select).value == "yes" if self.query_one("#concat-overwrite", Select) else False,
-            reencode=self.query_one("#concat-mode", Select).value == "reencode" if self.query_one("#concat-mode", Select) else False,
+            inputs=inputs, output_path=out,
+            overwrite=self._get_select("concat-overwrite") == "yes",
+            reencode=self._get_select("concat-mode") == "reencode",
         )
 
-    def _set_tool_context(self, action: str | None = None) -> None:
-        self.query_one("#tool-panel", ToolPanel).update_context(self.active_tab, self.input_path, action)
-
-    def _update_tool_panel(self) -> None:
-        self._set_tool_context()
-
     def _update_timeline(self) -> None:
-        # These input widgets may not exist in the current UI, so handle gracefully
-        start = ""
-        end = ""
-        preview_time = ""
-        try:
-            start = self.query_one("#start-time", Input).value
-        except NoMatches:
-            pass
-        try:
-            end = self.query_one("#end-time", Input).value
-        except NoMatches:
-            pass
-        try:
-            preview_time = self.query_one("#preview-time", Input).value
-        except NoMatches:
-            pass
-        self.query_one("#timeline", TimelinePanel).update_selection(start, end, preview_time)
+        self.query_one("#timeline", TimelinePanel).update_selection(
+            self._get_input("start-time"),
+            self._get_input("end-time"),
+            self._get_input("preview-time"),
+        )
 
     def _update_command_preview(self) -> None:
         self._update_timeline()
-        self._update_tool_panel()
         job = self._get_encode_job()
         if job:
             self.query_one("#command", CommandPreview).show_command(job.build_command())
         else:
-            self.query_one("#command", CommandPreview).update("Select a file to begin editing.")
+            self.query_one("#command", CommandPreview).update(
+                f"{NF['INFO']} Select a file to begin editing."
+            )
 
     def _load_file(self, path: Path) -> None:
         self.input_path = path
         self.output_path = default_output_path(path, self.selected_preset)
-        try:
-            self.query_one("#input-path", Input).value = str(path)
-        except NoMatches:
-            pass
-        try:
-            self.query_one("#output-path", Input).value = str(self.output_path)
-        except NoMatches:
-            pass
         self.query_one("#info", InfoPanel).show_info(path)
-
-        info = probe_media(path)
-        if info.width and info.height:
-            try:
-                self.query_one("#crop-w", Input).placeholder = str(info.width)
-            except NoMatches:
-                pass
-            try:
-                self.query_one("#crop-h", Input).placeholder = str(info.height)
-            except NoMatches:
-                pass
-
-        preview_time = self._get_input("preview-time", "00:00:01")
-        self.query_one("#preview", PreviewPanel).set_source(path, preview_time or "00:00:01")
+        pt = self._get_input("preview-time", "00:00:01")
+        self.query_one("#preview", PreviewPanel).set_source(path, pt or "00:00:01")
         self._update_command_preview()
-        self._update_timeline()
-        self.query_one("#status", Static).update(f"Loaded {path.name}")
+        self.query_one("#status", Static).update(f"{NF['FILE']} Loaded {path.name}")
+
+    @on(Button.Pressed, "#btn-open")
+    @on(Button.Pressed, "#btn-import")
+    @on(Button.Pressed, "#mnu-browse")
+    def action_open_file(self) -> None:
+        start = self.input_path.parent if self.input_path else Path.home()
+        self.push_screen(FilePicker(start), lambda p: self._load_file(p) if p else None)
+
+    @on(Button.Pressed, "#btn-readme")
+    @on(Button.Pressed, "#mnu-readme")
+    def action_show_readme(self) -> None:
+        self.push_screen(ReadmeScreen())
+
+    @on(Button.Pressed, "#btn-add-clip")
+    @on(Button.Pressed, "#mnu-add")
+    @on(Button.Pressed, "#btn-add-to-timeline")
+    def action_add_clip(self) -> None:
+        if not self.input_path:
+            self.query_one("#status", Static).update(
+                f"{NF['WARNING']} No file selected. Browse for a file first."
+            )
+            return
+        info = probe_media(self.input_path)
+        self.clips.append(Clip(
+            path=self.input_path, duration=info.duration,
+            in_point=self._get_input("start-time", "00:00:00"),
+            out_point=self._get_input("end-time"),
+        ))
+        self.query_one("#status", Static).update(f"{NF['ADD']} Added clip to project")
+
+    @on(Button.Pressed, "#btn-cut")
+    @on(Button.Pressed, "#mnu-cut")
+    def action_cut(self) -> None:
+        self.query_one("#status", Static).update(f"{NF['CUT']} Cut at position")
+
+    @on(Button.Pressed, "#btn-copy")
+    @on(Button.Pressed, "#mnu-copy")
+    def action_copy(self) -> None:
+        self.query_one("#status", Static).update(f"{NF['COPY']} Copied clip")
+
+    @on(Button.Pressed, "#btn-paste")
+    @on(Button.Pressed, "#mnu-paste")
+    def action_paste(self) -> None:
+        self.query_one("#status", Static).update(f"{NF['PASTE']} Pasted clip")
+
+    @on(Button.Pressed, "#btn-run")
+    @on(Button.Pressed, "#mnu-render")
+    def action_render(self) -> None:
+        self.action_run_job()
+
+    @on(Button.Pressed, "#btn-quit")
+    def action_quit(self) -> None:
+        self.exit()
+
+    def action_run_job(self) -> None:
+        job = self._get_encode_job()
+        if not job:
+            self.query_one("#status", Static).update(f"{NF['ERROR']} Choose a valid input file.")
+            return
+        if job.output_path.exists() and not job.overwrite:
+            self.query_one("#status", Static).update(
+                f"{NF['WARNING']} Output exists - enable overwrite."
+            )
+            return
+        self.run_ffmpeg(job)
+
+    @work(exclusive=True)
+    async def run_ffmpeg(self, job: FfmpegJob | ConcatJob) -> None:
+        progress = self.query_one("#progress", ProgressBar)
+        status = self.query_one("#status", Static)
+        run_btn = self.query_one("#btn-run", Button)
+        progress.update(progress=0)
+        run_btn.disabled = True
+        status.update(f"{NF['SYNC']} Running ffmpeg -> {job.output_path.name}")
+
+        if isinstance(job, FfmpegJob):
+            info = probe_media(job.input_path)
+            duration = job.output_duration(info.duration)
+        else:
+            duration = sum(probe_media(p).duration for p in job.inputs)
+
+        cmd = job.build_command()
+        proc = await asyncio.create_subprocess_exec(
+            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        )
+        assert proc.stderr is not None
+        while True:
+            line = (await proc.stderr.readline()).decode(errors="replace").strip()
+            if not line:
+                break
+            pct = parse_ffmpeg_progress(line, duration)
+            if pct is not None:
+                progress.update(progress=int(pct * 100))
+
+        code = await proc.wait()
+        run_btn.disabled = False
+
+        if isinstance(job, ConcatJob) and not job.reencode:
+            lp = job.output_path.with_suffix(".concat.txt")
+            if lp.exists():
+                lp.unlink()
+
+        if code == 0:
+            progress.update(progress=100)
+            status.update(f"{NF['CHECK']} Done: {job.output_path}")
+        else:
+            progress.update(progress=0)
+            status.update(f"{NF['ERROR']} ffmpeg failed (exit {code})")
 
     @on(TabbedContent.TabActivated, "#tabs")
     def on_tab_activated(self, event: TabbedContent.TabActivated) -> None:
@@ -938,160 +633,10 @@ class FfkittyApp(App[None]):
 
     @on(Input.Changed)
     def on_any_input_changed(self) -> None:
-        text = self._get_input("input-path")
-        if text:
-            self.input_path = Path(text)
+        t = self._get_input("input-path")
+        if t:
+            self.input_path = Path(t)
         self._update_command_preview()
-
-    @on(Button.Pressed, "#btn-open")
-    def on_open_pressed(self) -> None:
-        self._set_tool_context("open")
-        self.action_open_file()
-
-    @on(Button.Pressed, "#btn-run")
-    def on_run_pressed(self) -> None:
-        self._set_tool_context("run")
-        self.action_run_job()
-
-    @on(Button.Pressed, "#btn-import")
-    def on_import_pressed(self) -> None:
-        self._set_tool_context("open")
-        self.action_open_file()
-
-    def _activate_tab(self, pane_id: str, action: str | None = None) -> None:
-        self.active_tab = pane_id
-        self.query_one("#tabs", TabbedContent).active = pane_id
-        self._set_tool_context(action or pane_id)
-        self._update_command_preview()
-
-    def action_open_file(self) -> None:
-        start = self.input_path.parent if self.input_path else Path.home()
-
-        def handle_result(path: Path | None) -> None:
-            if path:
-                self._load_file(path)
-
-        self.push_screen(FilePicker(start), handle_result)
-
-    def action_refresh_preview(self) -> None:
-        if not self.input_path:
-            self.query_one("#status", Static).update("Select a file first.")
-            return
-        preview_time = self._get_input("preview-time", "00:00:01")
-        self.query_one("#preview", PreviewPanel).set_source(self.input_path, preview_time or "00:00:01")
-        self.query_one("#status", Static).update("Refreshing preview…")
-
-    def action_mark_in(self) -> None:
-        if not self.input_path:
-            return
-        ts = self._get_input("preview-time", "00:00:01")
-        try:
-            self.query_one("#start-time", Input).value = ts or "00:00:01"
-        except NoMatches:
-            pass
-        self._update_command_preview()
-        self.query_one("#status", Static).update(f"{ICON_ADD} In point: {ts}")
-
-    def action_mark_out(self) -> None:
-        if not self.input_path:
-            return
-        ts = self._get_input("preview-time", "00:00:01")
-        try:
-            self.query_one("#end-time", Input).value = ts or "00:00:01"
-        except NoMatches:
-            pass
-        self._update_command_preview()
-        self.query_one("#status", Static).update(f"{ICON_CUT} Out point: {ts}")
-
-    def action_add_clip(self) -> None:
-        if not self.input_path:
-            return
-        info = probe_media(self.input_path)
-        clip = Clip(
-            path=self.input_path,
-            duration=info.duration,
-            in_point=self._get_input("start-time", "00:00:00"),
-            out_point=self._get_input("end-time", ""),
-        )
-        self.clips.append(clip)
-        self.query_one("#status", Static).update(f"{ICON_ADD} Added {clip.name} to project")
-
-    def action_cut(self) -> None:
-        self.query_one("#status", Static).update(f"{ICON_CUT} Cut at current position")
-
-    def action_copy(self) -> None:
-        self.query_one("#status", Static).update(f"{ICON_COPY} Copied clip")
-
-    def action_paste(self) -> None:
-        self.query_one("#status", Static).update(f"{ICON_PASTE} Pasted clip to timeline")
-
-    def action_render(self) -> None:
-        self._set_tool_context("run")
-        self.action_run_job()
-
-    def action_run_job(self) -> None:
-        job = self._get_encode_job()
-        if not job:
-            self.query_one("#status", Static).update("[red]Choose a valid input file.[/red]")
-            return
-        if job.output_path.exists() and not job.overwrite:
-            self.query_one("#status", Static).update(
-                "[red]Output exists — enable overwrite or change path.[/red]"
-            )
-            return
-        self.run_ffmpeg(job)
-
-    def action_show_readme(self) -> None:
-        self.push_screen(ReadmeScreen())
-
-    @work(exclusive=True)
-    async def run_ffmpeg(self, job: FfmpegJob | ConcatJob) -> None:
-        progress = self.query_one("#progress", ProgressBar)
-        status = self.query_one("#status", Static)
-        run_btn = self.query_one("#btn-run", Button)
-
-        progress.update(progress=0)
-        run_btn.disabled = True
-        status.update(f"Running ffmpeg → {job.output_path.name}")
-
-        if isinstance(job, FfmpegJob):
-            info = probe_media(job.input_path)
-            duration = job.output_duration(info.duration)
-        else:
-            duration = sum(probe_media(p).duration for p in job.inputs)
-
-        cmd = job.build_command()
-
-        proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-
-        assert proc.stderr is not None
-        while True:
-            line_bytes = await proc.stderr.readline()
-            if not line_bytes:
-                break
-            line = line_bytes.decode(errors="replace").strip()
-            pct = parse_ffmpeg_progress(line, duration)
-            if pct is not None:
-                progress.update(progress=int(pct * 100))
-
-        code = await proc.wait()
-        run_btn.disabled = False
-
-        if isinstance(job, ConcatJob) and not job.reencode:
-            list_path = job.output_path.with_suffix(".concat.txt")
-            if list_path.exists():
-                list_path.unlink()
-
-        if code == 0:
-            progress.update(progress=100)
-            status.update(f"[green]Done:[/green] {job.output_path}")
-        else:
-            progress.update(progress=0)
-            status.update(f"[red]ffmpeg failed (exit {code})[/red]")
 
 
 def main() -> None:
